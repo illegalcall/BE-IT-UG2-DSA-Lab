@@ -3,6 +3,7 @@
 
 void mergeSort(int arr[], int size);
 void mergeArrays(int left[], int nL, int right[], int nR, int arr[]);
+void displayArray(int arr[], int size);
 
 int size;
 
@@ -12,11 +13,7 @@ int main()
     size = sizeof(arr) / sizeof(arr[0]);
     mergeSort(arr, size);
     printf("Final sorted array:\n");
-    int i;
-    for (i = 0; i < size; i++)
-    {
-        printf("%d ", arr[i]);
-    }
+    displayArray(arr, size);
 }
 
 void mergeSort(int arr[], int size)
@@ -62,4 +59,14 @@ void mergeArrays(int *left, int nL, int *right, int nR, int arr[])
     {
         arr[k++] = right[j++];
     }
+}
+
+void displayArray(int arr[], int size)
+{
+    int i;
+    for (i = 0; i < size; i++)
+    {
+        printf("%d ", arr[i]);
+    }
+    printf("\n");
 }
