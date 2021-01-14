@@ -11,10 +11,19 @@ struct TreeNode
 };
 
 TreeNode *newNode(int key);
-TreeNode *insert(TreeNode *root, int key);
-TreeNode *delete (TreeNode *root, int key);
+TreeNode *insertNode(TreeNode *root, int key);
+TreeNode *deleteNode(TreeNode *root, int key);
+TreeNode *searchNode(TreeNode *root, int val);
 void findInPredSucc(TreeNode *root, TreeNode *pred, TreeNode *succ, int key);
-int search(TreeNode *root, int val);
+
+void preOrder(TreeNode *root)
+{
+    if (root == NULL)
+        return;
+    printf("%d ", root->data);
+    preOrder(root->left);
+    preOrder(root->right);
+}
 
 int main()
 {
@@ -25,10 +34,13 @@ int main()
     TreeNode *root = NULL;
     for (i = 0; i < n; i++)
     {
-        root = insert(root, nodes[i]);
+        root = insertNode(root, nodes[i]);
     }
 
-    printf("Menu:\n");
+    printf("preorder initial tree:\n");
+    preOrder(root);
+
+    printf("\nMenu:\n");
     printf("enter 1 to insert a key into BST\n");
     printf("enter 2 to delete a key from BST\n");
     printf("enter 3 to search a key in BST\n");
@@ -44,31 +56,38 @@ int main()
 
         if (choice == -99)
         {
-            printf("EXITTING...");
+            printf("EXITTING...\n");
             break;
         }
         switch (choice)
         {
         case 1:
+        {
             printf("enter key to insert:\n");
             scanf("%d", &key);
-            root = insert(root, key);
+            root = insertNode(root, key);
             break;
+        }
         case 2:
+        {
             printf("enter key to delete:\n");
             scanf("%d", &key);
-            root = delete (root, key);
+            root = deleteNode(root, key);
             break;
+        }
         case 3:
+        {
             printf("enter key to be searched:\n");
             scanf("%d", &key);
-            int pos = search(root, key);
-            if (pos == -1)
+            TreeNode *node = searchNode(root, key);
+            if (node == NULL)
                 printf("key not found!\n");
             else
                 printf("key is present in BST\n");
             break;
+        }
         case 4:
+        {
             printf("enter key whose inorder predecessor and successor are to be found:\n");
             scanf("%d", &key);
             TreeNode *pred = NULL;
@@ -79,12 +98,22 @@ int main()
             if (succ)
                 printf("Successor has key = %d\n", succ->data);
             if (pred == NULL && succ == NULL)
-                printf("key not found!\n");
+            {
+                TreeNode *temp = searchNode(root, key);
+                if (temp)
+                    printf("key doesn't have a successor or a predecessor\n");
+                else
+                    printf("Key not found!\n");
+            }
             break;
+        }
         default:
             printf("Invalid Choice entered!\n");
         }
     }
+
+    printf("preorder final tree:\n");
+    preOrder(root);
 }
 
 TreeNode *newNode(int key)
@@ -95,38 +124,103 @@ TreeNode *newNode(int key)
     return node;
 }
 
-TreeNode *insert(TreeNode *root, int key)
+TreeNode *insertNode(TreeNode *root, int key)
 {
     if (root == NULL)
     {
-        root = newNode(key);
-        return root;
+        return newNode(key);
     }
     if (key < root->data)
-        root->left = insert(root->left, key);
+        root->left = insertNode(root->left, key);
     else if (key > root->data)
-        root->right = insert(root->right, key);
+        root->right = insertNode(root->right, key);
     return root;
 }
 
-TreeNode *delete (TreeNode *root, int key)
+TreeNode *deleteNode(TreeNode *root, int key)
 {
     // TODO: implement deleting node from BST
+    if (root)
+    {
+        if (key < root->data)
+            root->left = deleteNode(root->left, key);
+        else if (key > root->data)
+            root->right = deleteNode(root->right, key);
+        else
+        {
+            if (root->left == NULL)
+            {
+                TreeNode *temp = root->right;
+                free(root);
+                return temp;
+            }
+            else if (root->right == NULL)
+            {
+                TreeNode *temp = root->left;
+                free(root);
+                return temp;
+            }
+            else
+            {
+                TreeNode *pred = NULL;
+                TreeNode *succ = NULL;
+                findInPredSucc(root->right, pred, succ, key);
+                root->data = succ->data;
+                root->right = deleteNode(root->right, succ->data);
+            }
+        }
+    }
+    return root;
 }
 
-int search(TreeNode *root, int key)
+TreeNode *searchNode(TreeNode *root, int key)
 {
-    if (root == NULL)
-        return -1;
-    if (key == root->data)
-        return 1;
+    if (root == NULL || root->data == key)
+        return root;
     else if (key < root->data)
-        return search(root->left, key);
+        return searchNode(root->left, key);
     else
-        return search(root->right, key);
+        return searchNode(root->right, key);
 }
 
 void findInPredSucc(TreeNode *root, TreeNode *pred, TreeNode *succ, int key)
 {
     // TODO:find inorder successor and predecessor of a node in BST
+    if (root == NULL)
+        return;
+
+    if (key < root->data)
+    {
+        succ = root;
+        findInPredSucc(root->left, pred, succ, key);
+    }
+    else if (key > root->data)
+    {
+        pred = root;
+        findInPredSucc(root->right, pred, succ, key);
+    }
+    else
+    {
+        // predecessor => maximal node in left subtree
+        if (root->left)
+        {
+            TreeNode *temp = root->left;
+            while (temp && temp->right)
+            {
+                temp = temp->right;
+            }
+            pred = temp;
+        }
+        // successor => minimal node in right subtree
+        if (root->right)
+        {
+            TreeNode *temp = root->right;
+            while (temp && temp->left)
+            {
+                temp = temp->left;
+            }
+            succ = temp;
+        }
+        return;
+    }
 }
